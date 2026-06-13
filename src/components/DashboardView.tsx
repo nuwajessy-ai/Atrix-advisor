@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, Legend 
 } from 'recharts';
 import { 
   TrendingUp, TrendingDown, Sparkles, Award, Wallet, ArrowRight,
-  Plus, Target, AlertTriangle, RefreshCw, Sun, Moon, FileText, CheckCircle2, ChevronRight, PlusCircle
+  Plus, Target, AlertTriangle, RefreshCw, Sun, Moon, FileText, CheckCircle2, ChevronRight, PlusCircle,
+  User, Settings, Mail, Key, Shield, LogOut, Check, X, CreditCard, Building2, Users
 } from 'lucide-react';
 import { Industry, MetricPoint, Goal, SmartAlert, AIInsight } from '../types';
 import { calculateHealthScore, filterDataByRange } from '../data';
@@ -19,6 +20,18 @@ interface DashboardViewProps {
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenReport: (healthScore: number, summary: any) => void;
+  userName: string;
+  userEmail: string;
+  userPassword?: string;
+  onUpdateProfile: (updatedProfile: {
+    userName?: string;
+    userEmail?: string;
+    userPassword?: string;
+    businessName?: string;
+    industry?: Industry;
+    employees?: number;
+    monthlyRevenue?: number;
+  }) => void;
 }
 
 export default function DashboardView({
@@ -29,7 +42,11 @@ export default function DashboardView({
   initialGoals,
   isDarkMode,
   onToggleDarkMode,
-  onOpenReport
+  onOpenReport,
+  userName,
+  userEmail,
+  userPassword = '••••••••••••',
+  onUpdateProfile
 }: DashboardViewProps) {
   const [range, setRange] = useState<'7d' | '30d' | '90d' | '6m' | '1y'>('30d');
   
@@ -58,6 +75,50 @@ export default function DashboardView({
 
   // Recalculate Health metrics dynamically
   const healthScore = calculateHealthScore(dataPackage.metrics, goals, alerts);
+
+  // User Profile dialog local states
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [activeProfileTab, setActiveProfileTab] = useState<'personal' | 'workspace' | 'access'>('personal');
+
+  const [editUserName, setEditUserName] = useState(userName);
+  const [editUserEmail, setEditUserEmail] = useState(userEmail);
+  const [editUserPassword, setEditUserPassword] = useState('');
+  const [editBusinessName, setEditBusinessName] = useState(businessName);
+  const [editIndustry, setEditIndustry] = useState<Industry>(industry);
+  const [editEmployees, setEditEmployees] = useState(employees);
+  const [editMonthlyRevenue, setEditMonthlyRevenue] = useState(monthlyRevenue);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Synchronize inputs on initial show
+  useEffect(() => {
+    if (showProfileModal) {
+      setEditUserName(userName);
+      setEditUserEmail(userEmail);
+      setEditUserPassword('');
+      setEditBusinessName(businessName);
+      setEditIndustry(industry);
+      setEditEmployees(employees);
+      setEditMonthlyRevenue(monthlyRevenue);
+      setSaveSuccess(false);
+    }
+  }, [showProfileModal, userName, userEmail, businessName, industry, employees, monthlyRevenue]);
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    onUpdateProfile({
+      userName: editUserName,
+      userEmail: editUserEmail,
+      userPassword: editUserPassword || undefined,
+      businessName: editBusinessName,
+      industry: editIndustry,
+      employees: editEmployees,
+      monthlyRevenue: editMonthlyRevenue
+    });
+    setSaveSuccess(true);
+    setTimeout(() => {
+      setSaveSuccess(false);
+    }, 2500);
+  };
 
   const handleAddNewGoal = (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,6 +211,18 @@ export default function DashboardView({
             >
               <FileText className="w-3.5 h-3.5 text-blue-500" />
               Download Report
+            </button>
+
+            {/* Profile trigger button */}
+            <button
+              id="header_profile_button"
+              onClick={() => setShowProfileModal(true)}
+              className="px-3 py-2 border border-blue-200 dark:border-blue-900/60 bg-blue-50/20 dark:bg-blue-950/20 hover:bg-blue-50 dark:hover:bg-blue-950 rounded-xl text-xs font-semibold cursor-pointer text-blue-600 dark:text-blue-400 flex items-center gap-2 shadow-sm"
+            >
+              <div id="user_avatar_bubble" className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shadow-sm">
+                {userName ? userName.slice(0, 2).toUpperCase() : 'AD'}
+              </div>
+              <span className="max-w-[80px] sm:max-w-[120px] truncate">{userName}</span>
             </button>
           </div>
         </div>
@@ -595,6 +668,300 @@ export default function DashboardView({
                   >
                     Save goal
                   </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* 6. Profile View & Account Settings Modal */}
+        {showProfileModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl shadow-2xl overflow-hidden relative text-left"
+            >
+              <div className="flex justify-between items-center px-6 py-4.5 border-b border-slate-200/60 dark:border-slate-800/60 bg-slate-50 dark:bg-slate-950/40">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-blue-505" />
+                  <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">Account Profile & Settings</h3>
+                </div>
+                <button 
+                  onClick={() => setShowProfileModal(false)}
+                  className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-650 dark:hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-4.5 h-4.5" />
+                </button>
+              </div>
+
+              {/* Upper Bio panel */}
+              <div className="px-6 py-5 bg-gradient-to-r from-blue-50/30 to-indigo-50/15 dark:from-blue-950/10 dark:to-indigo-950/5 border-b border-slate-200/40 dark:border-slate-800/40 flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/20">
+                  {userName ? userName.slice(0, 2).toUpperCase() : 'AD'}
+                </div>
+                <div className="text-center sm:text-left flex-1">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    <span className="font-bold text-lg text-slate-900 dark:text-white font-sans">{userName}</span>
+                    <span className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-green-100 dark:bg-green-950/60 text-green-700 dark:text-green-400">
+                      Active Administrator
+                    </span>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-0.5 font-mono">{userEmail}</p>
+                </div>
+                <div className="text-center sm:text-right text-[10px] sm:text-xs font-mono text-slate-400">
+                  <p>Registered: <span className="font-bold text-slate-700 dark:text-slate-300">13-June-2026</span></p>
+                  <p className="mt-0.5">Workspace: <span className="font-bold text-blue-600">{businessName}</span></p>
+                </div>
+              </div>
+
+              {/* Tabs button array */}
+              <div className="flex border-b border-slate-100 dark:border-slate-800 px-6 bg-slate-50/50 dark:bg-slate-950/20">
+                {[
+                  { id: 'personal', label: 'User Admin Account', icon: User },
+                  { id: 'workspace', label: 'Business Profile', icon: Building2 },
+                  { id: 'access', label: 'Status & Permissions', icon: Shield }
+                ].map((t) => {
+                  const IconComp = t.icon;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveProfileTab(t.id as any);
+                        setSaveSuccess(false);
+                      }}
+                      className={`flex items-center gap-2 py-3 px-4 border-b-2 text-xs font-semibold transform translate-y-[1px] transition-all cursor-pointer ${
+                        activeProfileTab === t.id 
+                          ? 'border-blue-600 text-blue-600 dark:text-blue-400' 
+                          : 'border-transparent text-slate-400 hover:text-slate-650 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      <IconComp className="w-3.5 h-3.5" />
+                      <span>{t.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <form onSubmit={handleSaveProfile}>
+                {/* Form content viewport */}
+                <div className="p-6 max-h-[350px] overflow-y-auto space-y-4 text-left">
+                  {saveSuccess && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900 rounded-xl p-3.5 flex items-center gap-3 animate-pulse"
+                    >
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <p className="text-xs text-emerald-850 dark:text-emerald-300 font-medium">
+                        Success! Your administrative account profile statistics have been synced.
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {/* TAB 1: Personal User Account */}
+                  {activeProfileTab === 'personal' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] font-mono tracking-wider uppercase text-slate-400 mb-1.5">Full Administrator Name</label>
+                          <div className="relative">
+                            <span className="absolute left-3.5 top-2.5 text-slate-400 text-xs">@</span>
+                            <input 
+                              type="text"
+                              required
+                              value={editUserName}
+                              onChange={(e) => setEditUserName(e.target.value)}
+                              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-blue-500 rounded-xl pl-8 pr-4 py-2.5 text-xs outline-none text-slate-900 dark:text-white"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-mono tracking-wider uppercase text-slate-400 mb-1.5">Work Email Address</label>
+                          <div className="relative">
+                            <Mail className="absolute left-3.5 top-3 w-3.5 h-3.5 text-slate-400" />
+                            <input 
+                              type="email"
+                              required
+                              value={editUserEmail}
+                              onChange={(e) => setEditUserEmail(e.target.value)}
+                              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-blue-500 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none text-slate-900 dark:text-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-mono tracking-wider uppercase text-slate-400 mb-1.5">Modify Administrator Password</label>
+                        <div className="relative border border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-3 bg-slate-50/40 dark:bg-slate-950/20 text-left">
+                          <div className="flex gap-4">
+                            <div className="relative flex-1">
+                              <Key className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
+                              <input 
+                                type="password"
+                                placeholder="Enter secure password to replace current"
+                                value={editUserPassword}
+                                onChange={(e) => setEditUserPassword(e.target.value)}
+                                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-blue-500 rounded-lg pl-9 pr-4 py-2 text-xs outline-none text-slate-900 dark:text-white"
+                              />
+                            </div>
+                            <span className="text-[10px] text-slate-400 hidden md:block max-w-[150px] leading-snug">
+                              Leave empty to keep existing bank-grade encrypted master password active.
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-blue-50/40 dark:bg-blue-950/10 border border-blue-100/30 dark:border-blue-900/50 p-3.5 rounded-xl text-[11px] leading-relaxed text-slate-550 dark:text-slate-350">
+                        <span className="font-bold text-blue-600 block mb-0.5">Platform Security Info:</span>
+                        This account is protected with industry-standard TLS 1.3 encryption and secured under custom user role configurations. All system interactions are tracked under your primary supervisor key.
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 2: Workspace Business Settings */}
+                  {activeProfileTab === 'workspace' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] font-mono tracking-wider uppercase text-slate-400 mb-1.5">Business Name</label>
+                          <input 
+                            type="text"
+                            required
+                            value={editBusinessName}
+                            onChange={(e) => setEditBusinessName(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-blue-500 rounded-xl px-4 py-2.5 text-xs outline-none text-slate-900 dark:text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-mono tracking-wider uppercase text-slate-400 mb-1.5">Industry Segment</label>
+                          <select 
+                            value={editIndustry}
+                            onChange={(e: any) => setEditIndustry(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs outline-none text-slate-800 dark:text-white"
+                          >
+                            <option value="SaaS">SaaS & Subscriptions</option>
+                            <option value="E-commerce">E-commerce & Retail</option>
+                            <option value="Manufacturing">Manufacturing & Plants</option>
+                            <option value="Consulting">Consulting & Services</option>
+                            <option value="Healthcare">Healthcare & Clinical</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <span className="block text-[10px] font-mono tracking-wider uppercase text-slate-400 mb-1.5">Workspace Staff: <b className="text-blue-605 text-xs font-sans">{editEmployees} members</b></span>
+                          <input 
+                            type="range"
+                            min="1"
+                            max="250"
+                            value={editEmployees}
+                            onChange={(e) => setEditEmployees(parseInt(e.target.value) || 1)}
+                            className="w-full accent-blue-650 bg-slate-100 dark:bg-slate-800 h-1.5 rounded-lg mt-3"
+                          />
+                        </div>
+                        <div>
+                          <span className="block text-[10px] font-mono tracking-wider uppercase text-slate-400 mb-1.5">Target Monthly Volume: <b className="text-blue-650 text-xs font-sans">${editMonthlyRevenue.toLocaleString()}</b></span>
+                          <input 
+                            type="range"
+                            min="5000"
+                            max="750000"
+                            step="5000"
+                            value={editMonthlyRevenue}
+                            onChange={(e) => setEditMonthlyRevenue(parseInt(e.target.value) || 5000)}
+                            className="w-full accent-blue-650 bg-slate-100 dark:bg-slate-800 h-1.5 rounded-lg mt-3"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-50 dark:bg-slate-950/40 p-3.5 rounded-xl border border-slate-200/50 dark:border-slate-800 text-[11px] leading-relaxed text-slate-550 dark:text-slate-350">
+                        <span className="font-bold text-slate-700 dark:text-slate-300 block mb-0.5 font-sans">Note on benchmark shifts:</span>
+                        Adjusting your business metadata will dynamically calibrate standard peer dashboards and reset smart alert parameters, keeping comparison models aligned accurately.
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 3: Access, Roles & Permissions Status */}
+                  {activeProfileTab === 'access' && (
+                    <div className="space-y-4">
+                      <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
+                        <div className="bg-slate-50 dark:bg-slate-950 px-4 py-2 font-semibold text-[10px] text-slate-400 font-mono uppercase tracking-wider text-left">
+                          Active Security Clearances
+                        </div>
+                        <div className="divide-y divide-slate-100 dark:divide-slate-805 bg-white dark:bg-slate-900 px-4 py-1 text-left">
+                          {[
+                            { role: 'Owner Access (Superuser)', enabled: true, level: 'Full root clearance' },
+                            { role: 'CFO Insights & Financial Planning', enabled: true, level: 'Benchmarking enabled' },
+                            { role: 'Write Ledger Transactions API', enabled: true, level: 'Auto-sync active' },
+                            { role: 'Download PDF Investor Briefings', enabled: true, level: 'Enterprise clearance' },
+                            { role: 'Multi-User Workspace Sharing', enabled: false, level: 'VIP Upgrade Required' }
+                          ].map((r, index) => (
+                            <div key={index} className="py-2.5 flex items-center justify-between">
+                              <div>
+                                <h5 className="font-semibold text-xs text-slate-850 dark:text-slate-200">{r.role}</h5>
+                                <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">{r.level}</span>
+                              </div>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                r.enabled 
+                                  ? 'bg-blue-100/60 dark:bg-blue-955/40 text-blue-600 dark:text-blue-400' 
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-450'
+                              }`}>
+                                {r.enabled ? 'Granted' : 'VIP Locked'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="border border-slate-250 dark:border-slate-800 rounded-xl p-3.5 space-y-2 text-left">
+                        <h5 className="font-semibold text-xs text-slate-800 dark:text-slate-200 font-sans">Active Infrastructure Diagnostics</h5>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-center mt-2">
+                          <div className="bg-slate-100/50 dark:bg-slate-950/60 p-2 rounded-lg border border-slate-200/20">
+                            <span className="text-[9px] text-slate-450 block font-mono">DB LATENCY</span>
+                            <span className="font-mono text-xs font-bold text-emerald-500 mt-0.5 block">2 ms</span>
+                          </div>
+                          <div className="bg-slate-100/50 dark:bg-slate-950/60 p-2 rounded-lg border border-slate-200/20">
+                            <span className="text-[9px] text-slate-450 block font-mono">TLS STATE</span>
+                            <span className="font-mono text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">256-bit</span>
+                          </div>
+                          <div className="bg-slate-100/50 dark:bg-slate-950/60 p-2 rounded-lg border border-slate-200/20">
+                            <span className="text-[9px] text-slate-450 block font-mono">ROUTING</span>
+                            <span className="font-mono text-xs font-bold text-blue-600 mt-0.5 block">HTTPS ok</span>
+                          </div>
+                          <div className="bg-slate-100/50 dark:bg-slate-950/60 p-2 rounded-lg border border-slate-200/20">
+                            <span className="text-[9px] text-slate-450 block font-mono">DATA STATE</span>
+                            <span className="font-mono text-xs font-bold text-emerald-500 mt-0.5 block">Normal</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer panel controls */}
+                <div className="flex gap-4 p-6 border-t border-slate-200/60 dark:border-slate-800/60 bg-slate-50 dark:bg-slate-950/40">
+                  <button 
+                    type="button"
+                    onClick={() => setShowProfileModal(false)}
+                    className="flex-1 py-2.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer text-center"
+                  >
+                    Close Settings
+                  </button>
+                  {activeProfileTab !== 'access' ? (
+                    <button 
+                      type="submit"
+                      className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/10"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      Save changes
+                    </button>
+                  ) : (
+                    <div className="flex-1 text-center py-2 text-[10px] text-slate-450 font-mono self-center">
+                      Credentials and clearence logs active
+                    </div>
+                  )}
                 </div>
               </form>
             </motion.div>

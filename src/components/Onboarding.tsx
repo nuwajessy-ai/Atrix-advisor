@@ -81,7 +81,10 @@ export default function Onboarding({ onOnboardingComplete }: OnboardingProps) {
             industry,
             employees,
             monthlyRevenue,
-            goals: selectedGoals
+            goals: selectedGoals,
+            userName: name || 'Ray Devlin',
+            userEmail: email || 'ray@apexcloud.com',
+            userPassword: password || '••••••••••••'
           });
         }, 1000);
       }

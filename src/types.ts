@@ -68,6 +68,9 @@ export interface OnboardingState {
   goals: string[];
   generatingReport: boolean;
   onboardingFinished: boolean;
+  userName?: string;
+  userEmail?: string;
+  userPassword?: string;
 }
 
 export interface InvestorReport {

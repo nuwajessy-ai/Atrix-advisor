@@ -17,6 +17,11 @@ export default function App() {
   const [monthlyRevenue, setMonthlyRevenue] = useState(115000);
   const [goals, setGoals] = useState<string[]>(['Increase organic MRR', 'Benchmark AWS containers']);
 
+  // User account credentials
+  const [userName, setUserName] = useState('Ray Devlin');
+  const [userEmail, setUserEmail] = useState('ray@apexcloud.com');
+  const [userPassword, setUserPassword] = useState('••••••••••••');
+
   // Report transfer states
   const [reportHealthScore, setReportHealthScore] = useState(88);
   const [reportSummary, setReportSummary] = useState<any>(null);
@@ -42,6 +47,9 @@ export default function App() {
     setEmployees(45);
     setMonthlyRevenue(160000);
     setGoals(['Build Enterprise Tier V2', 'Improve checkout margins by 4%']);
+    setUserName('Jessy Nuwa');
+    setUserEmail('nuwajessy@gmail.com');
+    setUserPassword('SecureDemo123!');
     setScreen('dashboard');
   };
 
@@ -51,6 +59,9 @@ export default function App() {
     if (data.employees) setEmployees(data.employees);
     if (data.monthlyRevenue) setMonthlyRevenue(data.monthlyRevenue);
     if (data.goals) setGoals(data.goals);
+    if (data.userName) setUserName(data.userName);
+    if (data.userEmail) setUserEmail(data.userEmail);
+    if (data.userPassword) setUserPassword(data.userPassword);
     setScreen('dashboard');
   };
 
@@ -86,6 +97,18 @@ export default function App() {
             isDarkMode={isDarkMode}
             onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
             onOpenReport={handleOpenReport}
+            userName={userName}
+            userEmail={userEmail}
+            userPassword={userPassword}
+            onUpdateProfile={(updatedUser: any) => {
+              if (updatedUser.userName !== undefined) setUserName(updatedUser.userName);
+              if (updatedUser.userEmail !== undefined) setUserEmail(updatedUser.userEmail);
+              if (updatedUser.userPassword !== undefined) setUserPassword(updatedUser.userPassword);
+              if (updatedUser.businessName !== undefined) setBusinessName(updatedUser.businessName);
+              if (updatedUser.industry !== undefined) setIndustry(updatedUser.industry);
+              if (updatedUser.employees !== undefined) setEmployees(updatedUser.employees);
+              if (updatedUser.monthlyRevenue !== undefined) setMonthlyRevenue(updatedUser.monthlyRevenue);
+            }}
           />
           {/* Active floating AI business advisor */}
           <AIChat 
